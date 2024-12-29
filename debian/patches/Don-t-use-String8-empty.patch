@@ -1,0 +1,28 @@
+From: Tomasz Wasilczyk <twasilczyk@google.com>
+Date: Mon, 14 Aug 2023 16:26:24 +0000
+Subject: Don't use String8::empty
+
+Change-Id: Ic9d5a4f4371c6a8fe88d19528c263b1ed22e60c9
+Forwarded: https://android.googlesource.com/platform/frameworks/base/+/5f004aa22ec86ea25c2e1907bfb225f3c31ebc80
+---
+ tools/aapt/Command.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/aapt/Command.cpp b/tools/aapt/Command.cpp
+index d02fd83df6af..51cf38bce64e 100644
+--- a/tools/aapt/Command.cpp
++++ b/tools/aapt/Command.cpp
+@@ -353,8 +353,8 @@ static void printCompatibleScreens(ResXMLTree& tree, String8* outError) {
+ }
+ 
+ static void printUsesPermission(const String8& name, bool optional=false, int maxSdkVersion=-1,
+-        const String8& requiredFeature = String8::empty(),
+-        const String8& requiredNotFeature = String8::empty()) {
++        const String8& requiredFeature = String8(),
++        const String8& requiredNotFeature = String8()) {
+     printf("uses-permission: name='%s'", ResTable::normalizeForOutput(name.c_str()).c_str());
+     if (maxSdkVersion != -1) {
+          printf(" maxSdkVersion='%d'", maxSdkVersion);
+-- 
+2.39.5
+

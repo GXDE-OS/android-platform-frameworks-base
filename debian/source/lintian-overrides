@@ -1,0 +1,7 @@
+# The upstream repository is supposed to work with the entire AOSP altogether
+# and unfortunately this symlink happens to be cross-repository.
+wayward-symbolic-link-target-in-source ../../../../../native/include/android/multinetwork.h [native/android/include/android/multinetwork.h]
+
+# these files are not used at all in the build
+source-is-missing [test-base/src/junit/cpl-v10.html]
+source-is-missing [test-runner/src/junit/cpl-v10.html]

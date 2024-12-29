@@ -1,0 +1,180 @@
+From: Tomasz Wasilczyk <twasilczyk@google.com>
+Date: Thu, 24 Aug 2023 19:02:33 +0000
+Subject: Migrate from android::String isEmpty to empty [aapt]
+
+This empty method is different from the old one - it aligns with
+std::string definition.
+
+Change-Id: I1900f2285ee3c3b1eb57d2cef3990896a64dae01
+Forwarded: https://android.googlesource.com/platform/frameworks/base/+/7e22cab784f64c658b8a41fa1fb22cf7bd44c65e
+---
+ libs/androidfw/AssetManager2.cpp        | 4 ++--
+ tools/aapt/AaptAssets.cpp               | 2 +-
+ tools/aapt/Command.cpp                  | 4 ++--
+ tools/aapt/Resource.cpp                 | 4 ++--
+ tools/aapt/ResourceTable.cpp            | 8 ++++----
+ tools/aapt/SourcePos.cpp                | 2 +-
+ tools/aapt2/DominatorTree_test.cpp      | 3 +--
+ tools/split-select/SplitDescription.cpp | 2 +-
+ 8 files changed, 14 insertions(+), 15 deletions(-)
+
+diff --git a/libs/androidfw/AssetManager2.cpp b/libs/androidfw/AssetManager2.cpp
+index 400829e15364..fc9dd145dc5d 100644
+--- a/libs/androidfw/AssetManager2.cpp
++++ b/libs/androidfw/AssetManager2.cpp
+@@ -890,13 +890,13 @@ std::string AssetManager2::GetLastResourceResolution() const {
+     }
+ 
+     log_stream << "\n\t" << prefix->second << ": " << apk_assets_[step.cookie]->GetDebugName();
+-    if (!step.config_name.isEmpty()) {
++    if (!step.config_name.empty()) {
+       log_stream << " - " << step.config_name;
+     }
+   }
+ 
+   log_stream << "\nBest matching is from "
+-             << (last_resolution_.best_config_name.isEmpty() ? "default"
++             << (last_resolution_.best_config_name.empty() ? "default"
+                                                    : last_resolution_.best_config_name)
+              << " configuration of " << last_resolution_.best_package_name;
+   return log_stream.str();
+diff --git a/tools/aapt/AaptAssets.cpp b/tools/aapt/AaptAssets.cpp
+index b94d14fd4b75..0fc2617bb9f2 100644
+--- a/tools/aapt/AaptAssets.cpp
++++ b/tools/aapt/AaptAssets.cpp
+@@ -1540,7 +1540,7 @@ status_t AaptAssets::buildIncludedResources(Bundle* bundle)
+     }
+ 
+     const String8& featureOfBase = bundle->getFeatureOfPackage();
+-    if (!featureOfBase.isEmpty()) {
++    if (!featureOfBase.empty()) {
+         if (bundle->getVerbose()) {
+             printf("Including base feature resources from package: %s\n",
+                     featureOfBase.c_str());
+diff --git a/tools/aapt/Command.cpp b/tools/aapt/Command.cpp
+index 5a06b102592a..60f3f2715395 100644
+--- a/tools/aapt/Command.cpp
++++ b/tools/aapt/Command.cpp
+@@ -1133,7 +1133,7 @@ int doDump(Bundle* bundle)
+                 if (code == ResXMLTree::END_TAG) {
+                     depth--;
+                     if (depth < 2) {
+-                        if (withinSupportsInput && !supportedInput.isEmpty()) {
++                        if (withinSupportsInput && !supportedInput.empty()) {
+                             printf("supports-input: '");
+                             const size_t N = supportedInput.size();
+                             for (size_t i=0; i<N; i++) {
+@@ -1300,7 +1300,7 @@ int doDump(Bundle* bundle)
+                             ResTable::normalizeForOutput(versionName.c_str()).c_str());
+ 
+                     String8 splitName = AaptXml::getAttribute(tree, NULL, "split");
+-                    if (!splitName.isEmpty()) {
++                    if (!splitName.empty()) {
+                         printf(" split='%s'", ResTable::normalizeForOutput(
+                                     splitName.c_str()).c_str());
+                     }
+diff --git a/tools/aapt/Resource.cpp b/tools/aapt/Resource.cpp
+index 9c944e0de075..4a360ed1c80e 100644
+--- a/tools/aapt/Resource.cpp
++++ b/tools/aapt/Resource.cpp
+@@ -1285,7 +1285,7 @@ status_t buildResources(Bundle* bundle, const sp<AaptAssets>& assets, sp<ApkBuil
+         packageType = ResourceTable::SharedLibrary;
+     } else if (bundle->getExtending()) {
+         packageType = ResourceTable::System;
+-    } else if (!bundle->getFeatureOfPackage().isEmpty()) {
++    } else if (!bundle->getFeatureOfPackage().empty()) {
+         packageType = ResourceTable::AppFeature;
+     }
+ 
+@@ -3144,7 +3144,7 @@ writeProguardForXml(ProguardKeepSet* keep, const sp<AaptFile>& layoutFile,
+ 
+     tree.restart();
+ 
+-    if (!startTags.isEmpty()) {
++    if (!startTags.empty()) {
+         bool haveStart = false;
+         while ((code=tree.next()) != ResXMLTree::END_DOCUMENT && code != ResXMLTree::BAD_DOCUMENT) {
+             if (code != ResXMLTree::START_TAG) {
+diff --git a/tools/aapt/ResourceTable.cpp b/tools/aapt/ResourceTable.cpp
+index b6a17eb3e684..bccf73e69c34 100644
+--- a/tools/aapt/ResourceTable.cpp
++++ b/tools/aapt/ResourceTable.cpp
+@@ -1813,7 +1813,7 @@ status_t ResourceTable::addIncludedResources(Bundle* bundle, const sp<AaptAssets
+     mTypeIdOffset = findLargestTypeIdForPackage(assets->getIncludedResources(), mAssetsPackage);
+ 
+     const String8& featureAfter = bundle->getFeatureAfterPackage();
+-    if (!featureAfter.isEmpty()) {
++    if (!featureAfter.empty()) {
+         AssetManager featureAssetManager;
+         if (!featureAssetManager.addAssetPath(featureAfter, NULL)) {
+             fprintf(stderr, "ERROR: Feature package '%s' not found.\n",
+@@ -1823,7 +1823,7 @@ status_t ResourceTable::addIncludedResources(Bundle* bundle, const sp<AaptAssets
+ 
+         const ResTable& featureTable = featureAssetManager.getResources(false);
+         mTypeIdOffset = std::max(mTypeIdOffset,
+-                findLargestTypeIdForPackage(featureTable, mAssetsPackage)); 
++                findLargestTypeIdForPackage(featureTable, mAssetsPackage));
+     }
+ 
+     return NO_ERROR;
+@@ -3252,7 +3252,7 @@ status_t ResourceTable::flatten(Bundle* bundle, const sp<const ResourceFilter>&
+ 
+             // If we're building splits, then each invocation of the flattening
+             // step will have 'missing' entries. Don't warn/error for this case.
+-            if (bundle->getSplitConfigurations().isEmpty()) {
++            if (bundle->getSplitConfigurations().empty()) {
+                 bool missing_entry = false;
+                 const char* log_prefix = bundle->getErrorOnMissingConfigEntry() ?
+                         "error" : "warning";
+@@ -4858,7 +4858,7 @@ status_t ResourceTable::modifyForCompat(const Bundle* bundle,
+ 
+     Vector<sp<XMLNode> > nodesToVisit;
+     nodesToVisit.push(root);
+-    while (!nodesToVisit.isEmpty()) {
++    while (!nodesToVisit.empty()) {
+         sp<XMLNode> node = nodesToVisit.top();
+         nodesToVisit.pop();
+ 
+diff --git a/tools/aapt/SourcePos.cpp b/tools/aapt/SourcePos.cpp
+index e13028684414..354a65c14772 100644
+--- a/tools/aapt/SourcePos.cpp
++++ b/tools/aapt/SourcePos.cpp
+@@ -78,7 +78,7 @@ ErrorPos::print(FILE* to) const
+         break;
+     }
+     
+-    if (!this->file.isEmpty()) {
++    if (!this->file.empty()) {
+         if (this->line >= 0) {
+             fprintf(to, "%s:%d: %s%s\n", this->file.c_str(), this->line, type, this->error.c_str());
+         } else {
+diff --git a/tools/aapt2/DominatorTree_test.cpp b/tools/aapt2/DominatorTree_test.cpp
+index 52949da1b64f..a0679a65b9fd 100644
+--- a/tools/aapt2/DominatorTree_test.cpp
++++ b/tools/aapt2/DominatorTree_test.cpp
+@@ -50,8 +50,7 @@ class PrettyPrinter : public DominatorTree::Visitor {
+  private:
+   void VisitConfig(const DominatorTree::Node* node, const int indent) {
+     auto config_string = node->value()->config.toString();
+-    buffer_ << std::string(indent, ' ')
+-            << (config_string.isEmpty() ? "<default>" : config_string)
++    buffer_ << std::string(indent, ' ') << (config_string.empty() ? "<default>" : config_string)
+             << std::endl;
+   }
+ 
+diff --git a/tools/split-select/SplitDescription.cpp b/tools/split-select/SplitDescription.cpp
+index 4e2b48e1f450..71500080193f 100644
+--- a/tools/split-select/SplitDescription.cpp
++++ b/tools/split-select/SplitDescription.cpp
+@@ -70,7 +70,7 @@ bool SplitDescription::match(const SplitDescription& o) const {
+ String8 SplitDescription::toString() const {
+     String8 extension;
+     if (abi != abi::Variant_none) {
+-        if (extension.isEmpty()) {
++        if (extension.empty()) {
+             extension.append(":");
+         } else {
+             extension.append("-");
+-- 
+2.39.5
+
